@@ -1,24 +1,24 @@
 <h1 align="center">Product Card Assistant</h1>
 
-<p align="center">Draft Russian-language B2B catalog cards for measuring instruments.</p>
+<p align="center">Черновики товарных карточек для B2B-каталога измерительных приборов.</p>
 
 <p align="center">
   <img alt="Python 3.11+" src="https://img.shields.io/badge/python-3.11%2B-blue?style=flat-square">
-  <img alt="MIT license" src="https://img.shields.io/badge/license-MIT-blue?style=flat-square">
+  <img alt="Лицензия MIT" src="https://img.shields.io/badge/license-MIT-blue?style=flat-square">
 </p>
 
-## Features
+## Возможности
 
-- Reads one UTF-8 product record from a JSON file or standard input.
-- Uses OpenAI to rank source facts and search queries and select an editorial focus.
-- Returns a Markdown or JSON draft with a title of up to 70 characters, a description
-  of 800–1,200 characters, specifications, 3–5 search queries and a short manager brief.
-- Lists missing fields and marks unavailable specification values with `данных нет`.
+- Принимает одну запись о товаре в JSON из файла или стандартного ввода.
+- Использует OpenAI для выбора акцента описания, приоритетных характеристик и поисковых запросов.
+- Возвращает Markdown или JSON с SEO-заголовком до 70 символов, описанием на 800–1 200 символов,
+  списком характеристик, 3–5 поисковыми запросами и коротким блоком для менеджера.
+- Перечисляет поля, которые требуют уточнения, и помечает отсутствующие значения словами «данных нет».
 
-## Installation
+## Установка
 
-Requires Python 3.11 or newer and an OpenAI API key. The CLI has no runtime Python dependencies
-outside the standard library. From the repository root, on macOS or Linux:
+Для запуска нужны Python 3.11 или новее и ключ OpenAI API. Приложение использует стандартную
+библиотеку Python. Команды для macOS и Linux из корня репозитория:
 
 ```sh
 python3 -m venv .venv
@@ -26,10 +26,10 @@ source .venv/bin/activate
 python -m pip install .
 ```
 
-## Usage
+## Запуск
 
-Set `OPENAI_API_KEY` in the shell environment using your secret manager or local shell setup.
-Then run:
+Задайте переменную окружения `OPENAI_API_KEY` через менеджер секретов или настройки оболочки.
+Затем выполните одну из команд:
 
 ```sh
 product-card examples/manometer.json
@@ -37,71 +37,73 @@ product-card examples/manometer.json --format json > card.json
 product-card - < examples/demo-temperature-probe.json
 ```
 
-Each command sends one request. Markdown is the default. JSON contains `seo_title`,
-`seo_description`, `specifications`, `search_queries`, `commercial` and `missing_fields`.
-Errors go to stderr. Exit status `2` indicates invalid input or missing configuration, and
-`1` indicates an API or response error. API requests have a 30-second network timeout.
+Каждая команда отправляет один запрос к API. По умолчанию результат выводится в Markdown.
+В JSON доступны поля `seo_title`, `seo_description`, `specifications`, `search_queries`,
+`commercial` и `missing_fields`.
 
-| Setting | Default | Purpose |
+Ошибки выводятся в stderr. Код выхода `2` означает ошибку входных данных или конфигурации,
+`1` — ошибку запроса к API или ответа. Сетевой тайм-аут составляет 30 секунд.
+
+| Переменная | По умолчанию | Назначение |
 | --- | --- | --- |
-| `OPENAI_API_KEY` | Required | API authentication |
-| `OPENAI_MODEL` | `gpt-4.1-mini` | Chat Completions model with Structured Outputs support |
+| `OPENAI_API_KEY` | Обязательна | Авторизация в API |
+| `OPENAI_MODEL` | `gpt-4.1-mini` | Модель Chat Completions с поддержкой Structured Outputs |
 
-The CLI reads environment variables directly. `.env.example` lists their names.
+Программа читает переменные окружения. Их имена перечислены в `.env.example`.
 
-### Input contract
+### Входные данные
 
-`name`, `manufacturer` and `description` accept strings or null. `specs` is a mapping
-from names to strings or null. Use strings for numbers and their units, such as `"100 мм"`.
-Missing keys, nulls and whitespace-only strings are reported as missing. The optional
-`expected_specs` array lets the editor specify which additional parameters to check.
-The maximum input size is 64 KiB. Unrecognized top-level fields are ignored.
+Поля `name`, `manufacturer` и `description` принимают строки или `null`. Поле `specs` —
+объект, в котором каждому названию характеристики соответствует строка или `null`.
+Передавайте числовые значения вместе с единицами измерения строкой, например `"100 мм"`.
 
-### Sample drafts
+Отсутствующие поля, значения `null` и строки из пробелов считаются незаполненными.
+Необязательный массив `expected_specs` позволяет задать список дополнительных характеристик
+для проверки. Максимальный размер входных данных — 64 КиБ. Неизвестные поля верхнего уровня
+игнорируются.
 
-| Product | Input | Markdown output |
+### Примеры карточек
+
+| Товар | Входной JSON | Готовый Markdown |
 | --- | --- | --- |
-| DM 02 pressure gauge | [JSON](examples/manometer.json) | [Draft](examples/manometer.md) |
-| DEMO-T temperature probe | [JSON](examples/demo-temperature-probe.json) | [Draft](examples/demo-temperature-probe.md) |
+| Манометр DM 02 | [Входные данные](examples/manometer.json) | [Карточка](examples/manometer.md) |
+| Датчик температуры DEMO-T | [Входные данные](examples/demo-temperature-probe.json) | [Карточка](examples/demo-temperature-probe.md) |
 
-The pressure gauge uses the product record shown in the assignment. The two extra specification
-names are a demonstration checklist. The supplied PDF contains one product record, so DEMO-T is
-a synthetic fixture with a missing manufacturer and missing technical values. Both drafts were
-rendered from fixed, hand-selected plans. A regression test reproduces them byte for byte.
-Tests exercise the OpenAI request and response contract with a mocked HTTP transport.
+Данные манометра взяты из задания. Две дополнительные характеристики показывают, как работает
+`expected_specs`. В предоставленном PDF был один товар, поэтому DEMO-T — демонстрационная
+запись с пропусками в производителе и характеристиках. Обе карточки собраны офлайн по заранее
+заданным планам. Тесты воспроизводят их побайтно и проверяют формат запросов и обработку ответов
+через подмену HTTP-вызова.
 
-## Prompt and rendering
+## Промпт и сборка карточки
 
-1. Python validates and normalizes the source JSON and builds indexed candidates for the
-   copy, search queries and exact excerpts. The supplied specifications are retained for
-   the structured output.
-2. The system prompt treats the product record as untrusted source material and asks
-   the model to choose a focus, prioritize candidate facts and queries, and select a
-   usable excerpt. The API uses a strict JSON schema. Python checks candidate bounds,
-   uniqueness and list lengths before rendering.
-3. Python composes the Russian prose from predefined paragraphs and selected source material.
-   Technical values in the structured output come from the input, with surrounding
-   whitespace trimmed. The renderer condenses whitespace for inline copy. A model response
-   can change the emphasis and ordering through the plan. It cannot introduce free text
-   or populate a missing specification.
+1. Python проверяет JSON и формирует списки пронумерованных вариантов: характеристики для
+   описания, поисковые запросы и фрагменты исходного текста. Исходные характеристики сохраняются
+   для отдельного блока карточки.
+2. Системный промпт описывает поля товара как источник данных. Модель выбирает акцент карточки,
+   порядок характеристик и запросов, а также подходящий фрагмент описания. Ответ приходит по
+   строгой JSON-схеме. Python проверяет диапазоны индексов, их уникальность и длину списков.
+3. Python собирает текст из готовых формулировок и выбранных фрагментов. В блок характеристик
+   значения попадают из входного JSON с обрезкой пробелов по краям. В тексте карточки пробельные
+   последовательности сворачиваются. Модель может менять акцент и порядок, а заполнение пропусков
+   и произвольный текст в её ответе исключены форматом плана.
 
-The OpenAI request uses [Structured Outputs](https://developers.openai.com/api/docs/guides/structured-outputs).
+Для структурированного ответа используется [OpenAI Structured Outputs](https://developers.openai.com/api/docs/guides/structured-outputs).
 
-## Limitations and next steps
+## Ограничения и возможные улучшения
 
-- The constrained renderer trades stylistic variety for factual control. Category-specific
-  copy and checklists would make the description more useful for common instrument families.
-- The app reports absent fields against the source record and its checklist. It does not
-  infer parameter requirements, resolve conflicting values, or extract specifications
-  from a datasheet. Long prose is eligible for quoting only when it contains a suitable
-  line of up to 250 characters. Evidence-linked extraction would extend that workflow.
-- Query suggestions are based on the record. Their search volume is unmeasured.
-- Source assertions are taken as supplied and need an editor's review. The local example
-  checks do not measure the live model's plan quality.
-- Provider errors stop the run. A production version could add bounded retries for transient
-  failures and collect draft acceptance data.
+- Шаблоны ограничивают разнообразие текста. Отдельные формулировки и списки обязательных
+  характеристик для разных категорий приборов сделают карточки точнее.
+- Пропуски определяются по входной записи и списку `expected_specs`. Извлечение характеристик
+  из паспорта и разрешение противоречий между источниками можно добавить с привязкой к исходным
+  фрагментам. Для цитирования подходит строка исходного описания длиной до 250 символов.
+- Поисковые запросы составляются из данных товара. Их частотность не измеряется.
+- Сведения из входной записи требуют редакторской проверки. Офлайн-примеры показывают работу
+  сборки карточки, а качество выбора модели можно проверить на живых запросах.
+- При ошибке API запуск завершается. Для временных сбоев можно добавить ограниченное число
+  повторов и собирать обратную связь по готовым карточкам.
 
-## Development
+## Проверки
 
 ```sh
 python -m pip install -e '.[dev]'
@@ -110,4 +112,6 @@ ruff check
 pytest
 ```
 
-See the [roadmap](ROADMAP.md) and [MIT license](LICENSE).
+## Лицензия
+
+[MIT](LICENSE)
